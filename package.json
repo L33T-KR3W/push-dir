@@ -1,0 +1,21 @@
+{
+  "name": "push-dir",
+  "version": "0.0.0",
+  "description": "Push a directory to a remote branch",
+  "keywords": [],
+  "contributors": [
+    "Ryan Tsao <ryan.j.tsao@gmail.com>"
+  ],
+  "repository": "git@github.com:L33T-KR3W/push-dir.git",
+  "homepage": "https://github.com/L33T-KR3W/push-dir",
+  "bugs": "https://github.com/L33T-KR3W/push-dir/issues",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^4.4.0"
+  },
+  "license": "MIT"
+}
