@@ -53,13 +53,13 @@ function fixtureTestCommands(fixture) {
 }
 
 function shouldFailWithMessage(t, errorMessage, error, stdout, stderr) {
-  t.notOk(error);
+  t.equal(error, null);
   t.equal(stderr, formatExpectedStdout(errorMessage));
   t.end();
 }
 
 function shouldWork(t, error, stdout, stderr) {
-  t.notOk(error);
+  t.equal(error, null);
   t.end();
 }
 
