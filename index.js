@@ -1,9 +1,12 @@
-const exec = require('child_process').exec;
+var exec = require('child_process').exec;
 
 module.exports = pushDir;
 
 function pushDir(opts) {
-  getLastCommitHash().then(function(hash) {
+  getLastCommitInfo().then(function(info) {
+    var hash = info.hash;
+    var branch = info.branch;
+
     var directory = opts.dir;
     var local = opts.branch + '-' + hash;
     var remote = opts.branch;
@@ -12,21 +15,24 @@ function pushDir(opts) {
     var allowUnclean = opts.allowUnclean || opts.force;
     var overwriteLocal = opts.overwriteLocal || opts.force;
 
-    checkIfClean()
+    Promise.resolve()
+      .then(checkIfClean)
       .catch(function onUnclean(reason) {
         return allowUnclean ?
           console.log('ignoring unclean git...') : Promise.reject(reason);
       })
+
       .then(noLocalBranchConflict.bind(null, local))
       .catch(function onBranchConflict(reason) {
         return overwriteLocal ?
           overwriteLocalBranch(local) : Promise.reject(reason);
       })
+
       .then(checkoutOrphanBranch.bind(null, directory, local))
       .then(addDir.bind(null, directory))
       .then(commitDir.bind(null, directory, message))
       .then(pushDirToRemote.bind(null, remote))
-      .then(resetBranch)
+      .then(resetBranch.bind(null, branch))
       .catch(handleError);
 
   }, handleError);
@@ -48,9 +54,16 @@ function checkIfClean() {
   );
 }
 
-function resetBranch() {
+function getCurrentBranch() {
   return execCmd(
-    'git checkout - -f',
+    'git symbolic-ref --short HEAD',
+    'problem getting current branch'
+  );
+}
+
+function resetBranch(branch) {
+  return execCmd(
+    'git reset --hard && git clean -fdx && git checkout ' + branch,
     'problem resetting branch'
   );
 }
@@ -72,7 +85,7 @@ function commitDir(directory, message) {
 function pushDirToRemote(remote) {
   return execCmd(
     'git push origin HEAD:' + remote + ' --force',
-    'problem pushing local =branch to remote'
+    'problem pushing local branch to remote'
   );
 }
 
@@ -97,6 +110,20 @@ function noLocalBranchConflict(branch) {
   );
 }
 
+function getLastCommitInfo() {
+  return Promise
+    .all([
+      getLastCommitHash(),
+      getCurrentBranch()
+    ])
+    .then(function(info) {
+      return {
+        hash: info[0].trim(),
+        branch: info[1].trim()
+      };
+    });
+}
+
 function getLastCommitHash() {
   return execCmd(
     'git rev-parse --short HEAD',
@@ -104,12 +131,14 @@ function getLastCommitHash() {
   );
 }
 
+
 /**
  * Helpers
  */
 
 function handleError(err) {
-  console.error('aborted: ', err);
+  console.error('aborted:', err);
+  process.exit(1);
 }
 
 function execCmd(cmd, errMessage) {
