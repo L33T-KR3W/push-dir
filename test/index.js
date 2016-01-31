@@ -4,35 +4,31 @@ var exec = require('child_process').exec;
 
 test('test abort - staged changes', function (t) {
   var cmds = fixtureTestCommands('test-abort-staged-changes.sh');
-  exec(cmds, shouldAbortWithMessage.bind(null, t, 'git not clean'));
+  exec(cmds, shouldFailWithMessage.bind(null, t, 'git not clean'));
   t.plan(2);
 });
-
 
 test('test abort - unstaged changes', function (t) {
   var cmds = fixtureTestCommands('test-abort-unstaged-changes.sh');
-  exec(cmds, shouldAbortWithMessage.bind(null, t, 'git not clean'));
+  exec(cmds, shouldFailWithMessage.bind(null, t, 'git not clean'));
   t.plan(2);
 });
-
 
 test('test abort - untracked files', function (t) {
   var cmds = fixtureTestCommands('test-abort-untracked-files.sh');
-  exec(cmds, shouldAbortWithMessage.bind(null, t, 'git not clean'));
+  exec(cmds, shouldFailWithMessage.bind(null, t, 'git not clean'));
   t.plan(2);
 });
-
 
 test('test abort - branch exists', function (t) {
   var cmds = fixtureTestCommands('test-abort-branch-exists.sh');
-  exec(cmds, shouldAbortWithMessage.bind(null, t, 'local branch with name already exists'));
+  exec(cmds, shouldFailWithMessage.bind(null, t, 'local branch with name already exists'));
   t.plan(2);
 });
 
-
 test('test works', function (t) {
   var cmds = fixtureTestCommands('test-works.sh');
-  exec(cmds, shouldWork.bind(null, t, 'should work'));
+  exec(cmds, shouldWork.bind(null, t));
   t.plan(1);
 });
 
@@ -56,34 +52,27 @@ function fixtureTestCommands(fixture) {
   );
 }
 
-
-function shouldAbortWithMessage(t, errorMessage, error, stdout, stderr) {
-  console.log(stdout, stderr);
+function shouldFailWithMessage(t, errorMessage, error, stdout, stderr) {
   t.notOk(error);
   t.equal(stderr, formatExpectedStdout(errorMessage));
   t.end();
 }
 
-
 function shouldWork(t, error, stdout, stderr) {
-  console.log(stdout, stderr);
-  t.ok(error);
+  t.notOk(error);
   t.end();
 }
-
 
 function commands() {
   var cmds = flatten(Array.prototype.slice.call(arguments));
   return cmds.join(' && \\\n');
 }
 
-
 function flatten(array) {
   return array.reduce(function(a, b) {
     return a.concat(b);
   }, []);
 }
-
 
 function formatExpectedStdout(message) {
   return 'aborted: ' + message + '\n';
