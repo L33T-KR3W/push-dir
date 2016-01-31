@@ -12,86 +12,100 @@ function push(directory, local, remote, message, force) {
   checkIfClean()
     .catch(function onUnclean() {
       return force ?
-        console.log('pushing anyway') : Promise.reject('git unclean');
+        console.log('ignoring unclean git...') : Promise.reject('git unclean');
     })
     .then(checkoutOrphanBranch.bind(null, directory, local))
-    .then(commitAndPush.bind(null, directory, remote, message))
+    .then(addDir.bind(null, directory))
+    .then(commitDir.bind(null, directory, message))
+    .then(pushDirToRemote.bind(null, remote))
     .then(resetBranch)
     .catch(handleError);
 }
 
 function checkIfClean() {
-  return new Promise(function(resolve, reject) {
-    exec('git status --porcelain', function (error, stdout, stderr) {
-      var gitClean = !(error || stdout.length || stderr.length);
-      gitClean ? resolve() : reject('not clean');
-    });
-  });
+  return expectOutputEmpty(
+    'git status --porcelain',
+    'git not clean'
+  );
 }
 
 function resetBranch() {
-  return new Promise(function(resolve, reject) {
-    exec('git checkout - -f', function(error, stdout, stderr) {
-      error ? reject('problem resetting branch') : resolve();
-    });
-  });
+  return getOutput(
+    'git checkout - -f',
+    'problem resetting branch'
+  );
 }
 
-function commitAndPush(directory, remote, message) {
-  console.log('asdfasdfqqqq');
-  var cmd = [
+
+function addDir(directory) {
+  return getOutput(
     'git --work-tree ' + directory + ' add --all',
+    'problem adding directory to local branch'
+  );
+}
+
+function commitDir(directory, message) {
+  return getOutput(
     'git --work-tree ' + directory + ' commit -m "' + message + '"',
-    'git push origin HEAD:' + remote + ' --force'
-  ].join(' && ');
+    'problem committing directory to local branch'
+  );
+}
 
-  console.log('asfasdf');
-
-  return new Promise(function(resolve, reject) {
-    exec(cmd, function(error, stdout, stderr) {
-      console.log('no buenisimo', stdout, stderr);
-      error ? reject('no bueno') : resolve();
-    });
-  }); 
+function pushDirToRemote(remote) {
+  return getOutput(
+    'git push origin HEAD:' + remote + ' --force',
+    'problem pushing local =branch to remote'
+  );
 }
 
 function checkoutOrphanBranch(directory, branch) {
-  var cmd = 'git --work-tree ' + directory + ' checkout --orphan ' + branch;
-  return new Promise(function(resolve, reject) {
-    exec(cmd, function (error, stdout, stderr) {
-      error ? reject('could not checkout orphan branch') : resolve();
-    });
-  });
+  return getOutput(
+    'git --work-tree ' + directory + ' checkout --orphan ' + branch,
+    'problem creating local orphan branch'
+  );
 }
 
 function deleteLocalBranch(branch) {
-  var cmd = 'git branch -D ' + branch;
-  return new Promise(function(resolve, reject) {
-    exec(cmd, function (error, stdout, stderr) {
-      resolve();
-    });
-  });
+  return getOutput(
+    'git branch -D ' + branch,
+    'problem deleting local branch'
+  );
 }
 
 function noLocalBranchConflict(branch) {
-  var cmd = 'git branch --list ' + branch;
-  return new Promise(function(resolve, reject) {
-    exec(cmd, function (error, stdout, stderr) {
-      var noConflict = !(error || stdout.length || stderr.length);
-      noConflict ? resolve() : reject();
-    });
-  });
+  return expectOutputEmpty(
+    'git branch --list ' + branch,
+    'local branch with name already exists'
+  );
 }
 
 function getLastCommitHash() {
+  return getOutput(
+    'git rev-parse --short HEAD',
+    'problem getting last commit hash'
+  );
+}
+
+/**
+ * Helpers
+ */
+
+function handleError(err) {
+  console.error('aborted: ', err);
+}
+
+function getOutput(cmd, errMessage) {
   return new Promise(function(resolve, reject) {
-    exec('git rev-parse --short HEAD', function (error, stdout, stderr) {
-      error ? reject(error) : resolve(stdout);
+    exec(cmd, function (error, stdout, stderr) {
+      error ? reject(errMessage) : resolve(stdout);
     });
   });
 }
 
-function handleError(error) {
-  console.error('aborted');
-  console.error(error);
+function expectOutputEmpty(cmd, errMessage) {
+  return new Promise(function(resolve, reject) {
+    exec(cmd, function (error, stdout, stderr) {
+      (error || stdout.length || stderr.length) ? reject(errMessage) : resolve();
+    });
+  });
 }
