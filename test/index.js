@@ -32,6 +32,12 @@ test('test works', function (t) {
   t.plan(1);
 });
 
+test('test works - allow unclean', function (t) {
+  var cmds = fixtureTestCommands('test-works-allow-unclean.sh');
+  exec(cmds, shouldWork.bind(null, t));
+  t.plan(1);
+});
+
 
 function fixtureTestCommands(fixture) {
   return commands(
@@ -53,12 +59,14 @@ function fixtureTestCommands(fixture) {
 }
 
 function shouldFailWithMessage(t, errorMessage, error, stdout, stderr) {
+  log(stdout, stderr);
   t.equal(error, null);
   t.equal(stderr, formatExpectedStdout(errorMessage));
   t.end();
 }
 
 function shouldWork(t, error, stdout, stderr) {
+  log(stdout, stderr);
   t.equal(error, null);
   t.end();
 }
@@ -76,4 +84,10 @@ function flatten(array) {
 
 function formatExpectedStdout(message) {
   return 'aborted: ' + message + '\n';
+}
+
+function log(stdout, stderr) {
+  var line = '=============';
+  console.log(line, 'stdout', line, '\n', stdout, '\n\n');
+  console.log(line, 'stderr', line, '\n', stderr, '\n\n');
 }

@@ -13,8 +13,8 @@ function pushDir(opts) {
     var remoteBranch = opts.branch;
     var message = typeof opts.message === 'function' ?
       opts.message(hash) : opts.message || hash;
-    var allowUnclean = opts.allowUnclean || opts.force;
-    var overwriteLocal = opts.overwriteLocal || opts.force;
+    var allowUnclean = opts['allow-unclean'] || opts.force;
+    var overwriteLocal = opts['overwrite-local'] || opts.force;
 
     Promise.resolve()
       .then(checkIfClean)
