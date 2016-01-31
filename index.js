@@ -9,7 +9,8 @@ function pushDir(opts) {
 
     var directory = opts.dir;
     var local = opts.branch + '-' + hash;
-    var remote = opts.branch;
+    var remote = opts.remote || 'origin';
+    var remoteBranch = opts.branch;
     var message = typeof opts.message === 'function' ?
       opts.message(hash) : opts.message || hash;
     var allowUnclean = opts.allowUnclean || opts.force;
@@ -31,7 +32,7 @@ function pushDir(opts) {
       .then(checkoutOrphanBranch.bind(null, directory, local))
       .then(addDir.bind(null, directory))
       .then(commitDir.bind(null, directory, message))
-      .then(pushDirToRemote.bind(null, remote))
+      .then(pushDirToRemote.bind(null, remote, remoteBranch))
       .then(resetBranch.bind(null, branch))
       .catch(handleError);
 
@@ -82,9 +83,9 @@ function commitDir(directory, message) {
   );
 }
 
-function pushDirToRemote(remote) {
+function pushDirToRemote(remote, remoteBranch) {
   return execCmd(
-    'git push origin HEAD:' + remote + ' --force',
+    'git push ' + remote + ' HEAD:' + remoteBranch + ' --force',
     'problem pushing local branch to remote'
   );
 }
