@@ -5,7 +5,7 @@ module.exports = pushDir;
 function pushDir(opts) {
   getLastCommitInfo().then(function(info) {
     var hash = info.hash;
-    var branch = info.branch;
+    var originalBranch = info.branch;
 
     var directory = opts.dir;
     var local = opts.branch + '-' + hash;
@@ -33,7 +33,7 @@ function pushDir(opts) {
       .then(addDir.bind(null, directory))
       .then(commitDir.bind(null, directory, message))
       .then(pushDirToRemote.bind(null, remote, remoteBranch))
-      .then(resetBranch.bind(null, branch))
+      .then(resetBranch.bind(null, originalBranch))
       .catch(handleError);
 
   }, handleError);
