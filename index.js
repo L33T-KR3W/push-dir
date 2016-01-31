@@ -15,6 +15,7 @@ function pushDir(opts) {
       opts.message(hash) : opts.message || hash;
     var allowUnclean = opts['allow-unclean'] || opts.force;
     var overwriteLocal = opts['overwrite-local'] || opts.force;
+    var cleanup = opts.cleanup === undefined ? false : opts.cleanup;
 
     Promise.resolve()
       .then(checkIfClean)
@@ -34,6 +35,7 @@ function pushDir(opts) {
       .then(commitDir.bind(null, directory, message))
       .then(pushDirToRemote.bind(null, remote, remoteBranch))
       .then(resetBranch.bind(null, originalBranch))
+      .then(cleanup ? deleteLocalBranch.bind(null, local) : null)
       .catch(handleError);
 
   }, handleError);

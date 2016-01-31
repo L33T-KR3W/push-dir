@@ -44,6 +44,12 @@ test('test works - overwrite local', function (t) {
   t.plan(1);
 });
 
+test('test works - cleanup', function (t) {
+  var cmds = fixtureTestCommands('test-works-cleanup.sh');
+  exec(cmds, shouldWork.bind(null, t));
+  t.plan(1);
+});
+
 
 function fixtureTestCommands(fixture) {
   return commands(
