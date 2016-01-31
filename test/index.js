@@ -38,6 +38,12 @@ test('test works - allow unclean', function (t) {
   t.plan(1);
 });
 
+test('test works - overwrite local', function (t) {
+  var cmds = fixtureTestCommands('test-works-overwrite-local.sh');
+  exec(cmds, shouldWork.bind(null, t));
+  t.plan(1);
+});
+
 
 function fixtureTestCommands(fixture) {
   return commands(
