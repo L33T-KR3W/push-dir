@@ -59,14 +59,12 @@ function fixtureTestCommands(fixture) {
     'rm -rf fixture-remote',
     'cp -r fixture fixture-working',
     'cd $PD_ROOT/test/fixture-working',
-    'echo "\nnow in $(pwd)"',
     'git init',
     'git config --local user.email "goose@l33t-kr3w.com"',
     'git config --local user.name "Goose"',
     'git add .',
     'git commit -m "initial commit"',
     'cp -r ../fixture-working ../fixture-remote',
-    'echo "RUNNING TEST.JS-----------"',
     'PUSH_DIR=$PD_ROOT/bin/push-dir.js ./' + fixture,
     'cd $PD_ROOT/test'
   );
