@@ -1,5 +1,6 @@
 # push-dir
 
+[![Version][version-badge]][version-href]
 [![Build status][build-badge]][build-href]
 
 Push a directory to a remote branch
@@ -40,6 +41,10 @@ whether to override a local branch of the same name, if exists
 --force
 alias for both --allow-unclean and --overwrite-local
 ```
+
+
+[version-badge]: https://img.shields.io/npm/v/push-dir.svg
+[version-href]: https://www.npmjs.com/package/push-dir
 
 [build-badge]: https://travis-ci.org/L33T-KR3W/push-dir.svg
 [build-href]: https://travis-ci.org/L33T-KR3W/push-dir
