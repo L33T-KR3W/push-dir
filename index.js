@@ -5,7 +5,8 @@ module.exports = pushDir;
 function pushDir(opts) {
   getLastCommitInfo().then(function(info) {
     var hash = info.hash;
-    var originalBranch = info.branch;
+    var detachedHead = info.detachedHead;
+    var originalBranch = detachedHead ? hash : info.branch;
 
     var directory = opts.dir;
     var local = opts.branch + '-' + hash;
@@ -34,7 +35,7 @@ function pushDir(opts) {
       .then(addDir.bind(null, directory))
       .then(commitDir.bind(null, directory, message))
       .then(pushDirToRemote.bind(null, remote, remoteBranch))
-      .then(resetBranch.bind(null, originalBranch))
+      .then(resetBranch.bind(null, originalBranch, detachedHead))
       .then(cleanup ? deleteLocalBranch.bind(null, local) : null)
       .catch(handleError);
 
@@ -64,9 +65,10 @@ function getCurrentBranch() {
   );
 }
 
-function resetBranch(branch) {
+function resetBranch(branch, detach) {
+  var detached = detach ? '--detach ' : '';
   return execCmd(
-    'git checkout -f ' + branch,
+    'git checkout -f ' + detached + branch,
     'problem resetting branch'
   );
 }
@@ -117,12 +119,15 @@ function getLastCommitInfo() {
   return Promise
     .all([
       getLastCommitHash(),
-      getCurrentBranch()
+      getCurrentBranch(),
+      checkIfDetachedHead()
     ])
     .then(function(info) {
+      info = info.map(function(s) { return s.trim(); });
       return {
-        hash: info[0].trim(),
-        branch: info[1].trim()
+        hash: info[0],
+        branch: info[1],
+        detachedHead: info[2] === 'true'
       };
     });
 }
@@ -131,6 +136,18 @@ function getLastCommitHash() {
   return execCmd(
     'git rev-parse --short HEAD',
     'problem getting last commit hash'
+  );
+}
+
+function checkIfDetachedHead() {
+  return execCmd(
+    'CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`;' +
+    'git symbolic-ref --short -q HEAD;' +
+    'if [ $? -eq 1 ] && [[ $CURRENT_BRANCH = "HEAD" ]];' +
+      'then echo "true";' +
+      'else echo "false";' +
+    'fi',
+    'problem checking if detached head'
   );
 }
 
