@@ -10,7 +10,8 @@
   "repository": "git@github.com:L33T-KR3W/push-dir.git",
   "homepage": "https://github.com/L33T-KR3W/push-dir",
   "bugs": "https://github.com/L33T-KR3W/push-dir/issues",
-  "main": "bin/push-dir.js",
+  "main": "index.js",
+  "bin": "bin/push-dir.js",
   "scripts": {
     "test": "node test/index.js"
   },
