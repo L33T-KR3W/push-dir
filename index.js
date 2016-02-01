@@ -59,14 +59,14 @@ function checkIfClean() {
 
 function getCurrentBranch() {
   return execCmd(
-    'git symbolic-ref --short HEAD',
+    'git rev-parse --abbrev-ref HEAD',
     'problem getting current branch'
   );
 }
 
 function resetBranch(branch) {
   return execCmd(
-    'git reset --hard && git clean -fdx && git checkout ' + branch,
+    'git checkout -f ' + branch,
     'problem resetting branch'
   );
 }
