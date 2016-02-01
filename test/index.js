@@ -71,8 +71,7 @@ function fixtureTestCommands(fixture) {
     'git add .',
     'git commit -m "initial commit"',
     'cp -r ../fixture-working ../fixture-remote',
-    'PUSH_DIR=$PD_ROOT/bin/push-dir.js ./' + fixture,
-    'cd $PD_ROOT/test'
+    'PUSH_DIR=$PD_ROOT/bin/push-dir.js ./' + fixture
   );
 }
 

@@ -12,5 +12,5 @@ fi
 # check for gh-pages branches
 COUNT=`git branch | grep "gh-pages" | wc -l`
 if [ $COUNT -ne 0 ]; then
-  exit 1
+  exit 2
 fi

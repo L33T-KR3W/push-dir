@@ -143,7 +143,7 @@ function checkIfDetachedHead() {
   return execCmd(
     'CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`;' +
     'git symbolic-ref --short -q HEAD;' +
-    'if [ $? -eq 1 ] && [[ $CURRENT_BRANCH = "HEAD" ]];' +
+    'if [ $? -eq 1 ] && [ "$CURRENT_BRANCH" = "HEAD" ];' +
       'then echo "true";' +
       'else echo "false";' +
     'fi',
@@ -163,7 +163,7 @@ function handleError(err) {
 
 function execCmd(cmd, errMessage) {
   return new Promise(function(resolve, reject) {
-    exec(cmd, function (error, stdout, stderr) {
+    exec(cmd, function(error, stdout, stderr) {
       error ? reject(errMessage) : resolve(stdout);
     });
   });
@@ -171,7 +171,7 @@ function execCmd(cmd, errMessage) {
 
 function expectOutputEmpty(cmd, errMessage) {
   return new Promise(function(resolve, reject) {
-    exec(cmd, function (error, stdout, stderr) {
+    exec(cmd, function(error, stdout, stderr) {
       (error || stdout.length || stderr.length) ? reject(errMessage) : resolve();
     });
   });

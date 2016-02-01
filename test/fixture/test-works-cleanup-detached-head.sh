@@ -15,26 +15,26 @@ fi
 # check git is clean
 CLEAN=`git status --porcelain`
 if [ ${#CLEAN} -ne 0 ]; then
-  exit 1
+  exit 2
 fi
 
 
 # check commit hash is right
 HASH_NOW=`git rev-parse --short HEAD`
 if [[ $HASH != $HASH_NOW ]]; then
-  exit 1
+  exit 3
 fi
 
 
 # check branch is head
 CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 if [[ $CURRENT_BRANCH != "HEAD" ]]; then
-  exit 1
+  exit 4
 fi
 
 
 # check head is detached
 git symbolic-ref --short -q HEAD
 if [ $? -ne 1 ]; then
-  exit 1
+  exit 5
 fi
