@@ -59,7 +59,7 @@ function checkIfClean() {
 
 function getCurrentBranch() {
   return execCmd(
-    'git symbolic-ref --short HEAD',
+    'git rev-parse --abbrev-ref HEAD',
     'problem getting current branch'
   );
 }
