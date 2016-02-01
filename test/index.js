@@ -50,6 +50,12 @@ test('test works - cleanup', function (t) {
   t.plan(1);
 });
 
+test('test works - cleanup detached head', function (t) {
+  var cmds = fixtureTestCommands('test-works-cleanup-detached-head.sh');
+  exec(cmds, shouldWork.bind(null, t));
+  t.plan(1);
+});
+
 
 function fixtureTestCommands(fixture) {
   return commands(
