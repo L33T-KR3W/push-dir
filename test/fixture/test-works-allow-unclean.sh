@@ -22,7 +22,7 @@ echo "yolo" > yolo.js
 git status
 node $PUSH_DIR --dir build --branch gh-pages --allow-unclean
 if [ $? -ne 0 ]; then
-  exit 1
+  exit 2
 fi
 
 
@@ -33,5 +33,5 @@ touch meow
 git status
 node $PUSH_DIR --dir build --branch gh-pages --allow-unclean
 if [ $? -ne 0 ]; then
-  exit 1
+  exit 3
 fi

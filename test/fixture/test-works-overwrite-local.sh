@@ -13,5 +13,5 @@ fi
 # test --overwrite-local
 node $PUSH_DIR --dir build --branch gh-pages --overwrite-local
 if [ $? -ne 0 ]; then
-  exit 1
+  exit 2
 fi

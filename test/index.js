@@ -50,6 +50,12 @@ test('test works - cleanup', function (t) {
   t.plan(1);
 });
 
+test('test works - cleanup detached head', function (t) {
+  var cmds = fixtureTestCommands('test-works-cleanup-detached-head.sh');
+  exec(cmds, shouldWork.bind(null, t));
+  t.plan(1);
+});
+
 
 function fixtureTestCommands(fixture) {
   return commands(
@@ -65,8 +71,7 @@ function fixtureTestCommands(fixture) {
     'git add .',
     'git commit -m "initial commit"',
     'cp -r ../fixture-working ../fixture-remote',
-    'PUSH_DIR=$PD_ROOT/bin/push-dir.js ./' + fixture,
-    'cd $PD_ROOT/test'
+    'PUSH_DIR=$PD_ROOT/bin/push-dir.js ./' + fixture
   );
 }
 
