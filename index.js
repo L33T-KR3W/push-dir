@@ -66,7 +66,7 @@ function getCurrentBranch() {
 
 function resetBranch(branch) {
   return execCmd(
-    'git reset --hard && git clean -fdx && git checkout ' + branch,
+    'git checkout -f ' + branch,
     'problem resetting branch'
   );
 }
