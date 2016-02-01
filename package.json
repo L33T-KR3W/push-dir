@@ -1,6 +1,6 @@
 {
   "name": "push-dir",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Push a directory to a remote branch",
   "keywords": [],
   "contributors": [
