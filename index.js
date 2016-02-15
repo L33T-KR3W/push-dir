@@ -5,7 +5,7 @@ module.exports = pushDir;
 function pushDir(opts) {
   getLastCommitInfo().then(function(info) {
     var hash = info.hash;
-    var detachedHead = info.detachedHead;
+    var detachedHead = info.branch === '';
     var originalBranch = detachedHead ? hash : info.branch;
 
     var directory = opts.dir;
@@ -58,9 +58,13 @@ function checkIfClean() {
   );
 }
 
+/**
+ * Returns name of current branch or empty string if detached HEAD
+ * @return {string} - name of current branch
+ */
 function getCurrentBranch() {
   return execCmd(
-    'git rev-parse --abbrev-ref HEAD',
+    'git symbolic-ref HEAD -q | sed -e "s/^refs\\/heads\\///"',
     'problem getting current branch'
   );
 }
@@ -119,15 +123,13 @@ function getLastCommitInfo() {
   return Promise
     .all([
       getLastCommitHash(),
-      getCurrentBranch(),
-      checkIfDetachedHead()
+      getCurrentBranch()
     ])
     .then(function(info) {
       info = info.map(function(s) { return s.trim(); });
       return {
         hash: info[0],
-        branch: info[1],
-        detachedHead: info[2] === 'true'
+        branch: info[1]
       };
     });
 }
@@ -138,19 +140,6 @@ function getLastCommitHash() {
     'problem getting last commit hash'
   );
 }
-
-function checkIfDetachedHead() {
-  return execCmd(
-    'CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`;' +
-    'git symbolic-ref --short -q HEAD;' +
-    'if [ $? -eq 1 ] && [ "$CURRENT_BRANCH" = "HEAD" ];' +
-      'then echo "true";' +
-      'else echo "false";' +
-    'fi',
-    'problem checking if detached head'
-  );
-}
-
 
 /**
  * Helpers
