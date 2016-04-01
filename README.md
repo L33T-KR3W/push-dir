@@ -26,6 +26,9 @@ The name of the remote branch to push to
 
 Advanced Options:
 
+--remote
+The name of the remote to push to (defaults to origin)
+
 --cleanup
 whether to delete the local branch after creating
 
