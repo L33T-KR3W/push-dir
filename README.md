@@ -5,6 +5,12 @@
 
 Push a directory to a remote branch
 
+## install
+
+```
+npm install push-dir
+```
+
 ## example
 
 ```
