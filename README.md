@@ -14,7 +14,7 @@ npm install push-dir
 ## example
 
 ```
-push-dir --dir build --branch gh-pages
+push-dir --dir=build --branch=gh-pages
 ```
 
 ## usage
