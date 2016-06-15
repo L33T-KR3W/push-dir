@@ -3,7 +3,10 @@
 [![Version][version-badge]][version-href]
 [![Build status][build-badge]][build-href]
 
-Push a directory to a remote branch
+Push the contents of a directory to a remote branch
+
+* No messing around with `.gitignore` (no need to commit the directory)
+* Perfect for pushing a `dist`/`build` directory to `gh-pages`
 
 ## install
 
