@@ -16,11 +16,9 @@
     "test": "node test/index.js"
   },
   "dependencies": {
-    "minimist": "^1.2.0",
-    "nodeunit": "0.9.1"
+    "minimist": "^1.2.0"
   },
   "devDependencies": {
-    "mocha": "2.5.3",
     "tape": "^4.4.0"
   },
   "engines": {
