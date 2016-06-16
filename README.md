@@ -58,5 +58,5 @@ alias for both --allow-unclean and --overwrite-local
 [version-badge]: https://img.shields.io/npm/v/push-dir.svg
 [version-href]: https://www.npmjs.com/package/push-dir
 
-[build-badge]: https://travis-ci.org/L33T-KR3W/push-dir.svg
+[build-badge]: https://travis-ci.org/L33T-KR3W/push-dir.svg?branch=master
 [build-href]: https://travis-ci.org/L33T-KR3W/push-dir
