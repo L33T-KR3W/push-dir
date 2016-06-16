@@ -17,8 +17,10 @@ function pushDir(args) {
     var cleanup = !args['preserve-local-temp-branch'];
 
     Promise.resolve()
+      .then(validate.bind(null, directory, remoteBranch))
       .then(checkIfClean)
       .then(noLocalBranchConflict.bind(null, local))
+
       .then(checkoutOrphanBranch.bind(null, directory, local))
       .then(addDir.bind(null, directory))
       .then(commitDir.bind(null, directory, hash))
@@ -34,9 +36,10 @@ function pushDir(args) {
  * Tasks
  */
 
-function overwriteLocalBranch(local) {
-  console.log('will overwite local branch...');
-  return deleteLocalBranch(local);
+function validate(directory, remoteBranch) {
+  if (!directory || !remoteBranch) {
+    return Promise.reject('must specify dir:branch');
+  }
 }
 
 function checkIfClean() {

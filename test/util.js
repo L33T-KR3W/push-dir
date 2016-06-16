@@ -1,5 +1,6 @@
-var test = require('tape');
 var exec = require('child_process').exec;
+var path = require('path');
+var test = require('tape');
 
 
 module.exports = {
@@ -10,14 +11,14 @@ module.exports = {
   shouldWork: shouldWork,
   commands: commands,
   flatten: flatten,
-  formatExpectedStdout: formatExpectedStdout,
   log: log,
 };
 
 
 function fixtureTestCommands(fixture) {
+  var root = path.join(__dirname, '..');
   return commands(
-    'PD_ROOT=$(pwd)',
+    'PD_ROOT=' + root,
     'cd $PD_ROOT/test',
     'rm -rf fixture-working',
     'rm -rf fixture-remote',
@@ -36,7 +37,7 @@ function fixtureTestCommands(fixture) {
 function shouldFailWithMessage(t, errorMessage, error, stdout, stderr) {
   log(stdout, stderr);
   t.equal(error, null);
-  t.equal(stderr, formatExpectedStdout(errorMessage));
+  t.equal(stderr, errorMessage);
   t.end();
 }
 
@@ -55,10 +56,6 @@ function flatten(array) {
   return array.reduce(function(a, b) {
     return a.concat(b);
   }, []);
-}
-
-function formatExpectedStdout(message) {
-  return 'aborted: ' + message + '\n';
 }
 
 function log(stdout, stderr) {

@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
 git remote add origin ../fixture-remote/.git
+git mv build/ build:me/
+git commit -m 'ezpz'
 
 
 # push-dir
-node $PUSH_DIR build:gh-pages
+node $PUSH_DIR build:me:gh-pages
 if [ $? -ne 0 ]; then
   exit 1
 fi
