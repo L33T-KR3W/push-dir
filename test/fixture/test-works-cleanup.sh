@@ -3,7 +3,7 @@
 git remote add origin ../fixture-remote/.git
 
 
-node $PUSH_DIR --dir build --branch gh-pages --cleanup
+node $PUSH_DIR build:gh-pages --cleanup
 if [ $? -ne 0 ]; then
   exit 1
 fi

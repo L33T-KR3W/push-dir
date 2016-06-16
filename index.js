@@ -2,38 +2,26 @@ var exec = require('child_process').exec;
 
 module.exports = pushDir;
 
-function pushDir(opts) {
+function pushDir(args) {
   getLastCommitInfo().then(function(info) {
     var hash = info.hash;
     var detachedHead = info.branch === '';
     var originalBranch = detachedHead ? hash : info.branch;
 
-    var directory = opts.dir;
-    var local = opts.branch + '-' + hash;
-    var remote = opts.remote || 'origin';
-    var remoteBranch = opts.branch;
-    var message = typeof opts.message === 'function' ?
-      opts.message(hash) : opts.message || hash;
-    var allowUnclean = opts['allow-unclean'] || opts.force;
-    var overwriteLocal = opts['overwrite-local'] || opts.force;
-    var cleanup = opts.cleanup === undefined ? false : opts.cleanup;
+    var remoteSpecified = args._.length > 1;
+    var dirBranch = remoteSpecified ? args._[1] : args._[0];
+    var directory = dirBranch.split(':').slice(0, -1).join(':');
+    var remoteBranch = dirBranch.split(':').slice(-1)[0];
+    var local = remoteBranch + '-' + hash;
+    var remote = remoteSpecified ? args._[0] : 'origin';
+    var cleanup = !args['preserve-local-temp-branch'];
 
     Promise.resolve()
       .then(checkIfClean)
-      .catch(function onUnclean(reason) {
-        return allowUnclean ?
-          console.log('ignoring unclean git...') : Promise.reject(reason);
-      })
-
       .then(noLocalBranchConflict.bind(null, local))
-      .catch(function onBranchConflict(reason) {
-        return overwriteLocal ?
-          overwriteLocalBranch(local) : Promise.reject(reason);
-      })
-
       .then(checkoutOrphanBranch.bind(null, directory, local))
       .then(addDir.bind(null, directory))
-      .then(commitDir.bind(null, directory, message))
+      .then(commitDir.bind(null, directory, hash))
       .then(pushDirToRemote.bind(null, remote, remoteBranch))
       .then(resetBranch.bind(null, originalBranch, detachedHead))
       .then(cleanup ? deleteLocalBranch.bind(null, local) : null)

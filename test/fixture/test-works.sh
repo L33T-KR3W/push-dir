@@ -4,7 +4,7 @@ git remote add origin ../fixture-remote/.git
 
 
 # do first push-dir
-node $PUSH_DIR --dir build --branch gh-pages
+node $PUSH_DIR build:gh-pages
 if [ $? -ne 0 ]; then
   exit 1
 fi
@@ -20,7 +20,7 @@ fi
 # do second push-dir
 echo 'swag' >> build/yolo.min.js
 git commit -am 'swag'
-node $PUSH_DIR --dir build --branch gh-pages
+node $PUSH_DIR build:gh-pages
 if [ $? -ne 0 ]; then
   exit 3
 fi
