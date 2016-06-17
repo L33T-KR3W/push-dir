@@ -1,0 +1,25 @@
+usage: push-dir [remote] <dir>:<branch> [options...]
+
+required:
+
+  dir
+    the name of the directory whose contents will be pushed to <branch>
+
+  branch
+    the name of the remote branch to push to
+
+optional:
+
+  remote
+    the name of the remote to push to
+    defaults to: origin
+
+  --preserve-local-temp-branch
+    keep the local temp branch after pushing
+    defaults to: false
+
+  --help, -h
+    display this message
+
+  --message, -m
+    name of commit message

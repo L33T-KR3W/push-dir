@@ -3,14 +3,15 @@
 git remote add origin ../fixture-remote/.git
 
 
-node $PUSH_DIR --dir build --branch gh-pages --cleanup
+# push-dir
+node $PUSH_DIR build:gh-pages --preserve-local-temp-branch
 if [ $? -ne 0 ]; then
   exit 1
 fi
 
 
-# check for gh-pages branches
+# check for temp branch
 COUNT=`git branch | grep "gh-pages" | wc -l`
-if [ $COUNT -ne 0 ]; then
+if [ $COUNT -ne 1 ]; then
   exit 2
 fi

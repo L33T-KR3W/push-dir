@@ -2,54 +2,34 @@ var exec = require('child_process').exec;
 
 module.exports = pushDir;
 
-function pushDir(opts) {
-  getLastCommitInfo().then(function(info) {
-    var hash = info.hash;
-    var detachedHead = info.branch === '';
-    var originalBranch = detachedHead ? hash : info.branch;
+function pushDir(dir, branch, options) {
+  return getLastCommitInfo(options.message)
+    .then(function(info) {
+      var hash = info.hash;
+      var message = info.message || hash;
+      var detachedHead = info.branch === '';
+      var originalBranch = detachedHead ? hash : info.branch;
 
-    var directory = opts.dir;
-    var local = opts.branch + '-' + hash;
-    var remote = opts.remote || 'origin';
-    var remoteBranch = opts.branch;
-    var message = typeof opts.message === 'function' ?
-      opts.message(hash) : opts.message || hash;
-    var allowUnclean = opts['allow-unclean'] || opts.force;
-    var overwriteLocal = opts['overwrite-local'] || opts.force;
-    var cleanup = opts.cleanup === undefined ? false : opts.cleanup;
+      var local = branch + '-' + hash;
+      var remote = options.remote || 'origin';
+      var cleanup = !options.preserveLocalTempBranch;
 
-    Promise.resolve()
-      .then(checkIfClean)
-      .catch(function onUnclean(reason) {
-        return allowUnclean ?
-          console.log('ignoring unclean git...') : Promise.reject(reason);
-      })
-
-      .then(noLocalBranchConflict.bind(null, local))
-      .catch(function onBranchConflict(reason) {
-        return overwriteLocal ?
-          overwriteLocalBranch(local) : Promise.reject(reason);
-      })
-
-      .then(checkoutOrphanBranch.bind(null, directory, local))
-      .then(addDir.bind(null, directory))
-      .then(commitDir.bind(null, directory, message))
-      .then(pushDirToRemote.bind(null, remote, remoteBranch))
-      .then(resetBranch.bind(null, originalBranch, detachedHead))
-      .then(cleanup ? deleteLocalBranch.bind(null, local) : null)
-      .catch(handleError);
-
-  }, handleError);
+      return Promise.resolve()
+        .then(checkIfClean)
+        .then(noLocalBranchConflict.bind(null, local))
+        .then(checkoutOrphanBranch.bind(null, dir, local))
+        .then(addDir.bind(null, dir))
+        .then(commitDir.bind(null, dir, message))
+        .then(pushDirToRemote.bind(null, remote, branch))
+        .then(resetBranch.bind(null, originalBranch, detachedHead))
+        .then(cleanup ? deleteLocalBranch.bind(null, local) : null);
+    })
+    .catch(handleError);
 }
 
 /**
  * Tasks
  */
-
-function overwriteLocalBranch(local) {
-  console.log('will overwite local branch...');
-  return deleteLocalBranch(local);
-}
 
 function checkIfClean() {
   return expectOutputEmpty(
@@ -63,10 +43,18 @@ function checkIfClean() {
  * @return {string} - name of current branch
  */
 function getCurrentBranch() {
-  return execCmd(
-    'git symbolic-ref HEAD -q | sed -e "s/^refs\\/heads\\///"',
-    'problem getting current branch'
-  );
+  return Promise.resolve()
+    .then(function() {
+      return execCmd(
+        'git symbolic-ref HEAD -q',
+        'problem getting current branch',
+        true
+      );
+    })
+    .then(function(ref) {
+      var regex = new RegExp('^refs\/heads\/');
+      return ref.replace(regex, '');
+    });
 }
 
 function resetBranch(branch, detach) {
@@ -84,9 +72,17 @@ function addDir(directory) {
   );
 }
 
+function formatMessage(message) {
+  return message ? execCmd(
+    'git log -1 --pretty=\'format:' + escapeSingle(message) + '\'',
+    'error formatting commit message'
+  ) : '';
+}
+
 function commitDir(directory, message) {
+  var escaped = escapeSingle(message);
   return execCmd(
-    'git --work-tree ' + directory + ' commit -m "' + message + '"',
+    'git --work-tree ' + directory + ' commit -m \'' + escaped + '\'',
     'problem committing directory to local branch'
   );
 }
@@ -119,17 +115,19 @@ function noLocalBranchConflict(branch) {
   );
 }
 
-function getLastCommitInfo() {
+function getLastCommitInfo(message) {
   return Promise
     .all([
       getLastCommitHash(),
-      getCurrentBranch()
+      getCurrentBranch(),
+      formatMessage(message)
     ])
     .then(function(info) {
       info = info.map(function(s) { return s.trim(); });
       return {
         hash: info[0],
-        branch: info[1]
+        branch: info[1],
+        message: info[2]
       };
     });
 }
@@ -150,10 +148,10 @@ function handleError(err) {
   process.exit(1);
 }
 
-function execCmd(cmd, errMessage) {
+function execCmd(cmd, errMessage, allowError) {
   return new Promise(function(resolve, reject) {
     exec(cmd, function(error, stdout, stderr) {
-      error ? reject(errMessage) : resolve(stdout);
+      (error && allowError !== true) ? reject(errMessage) : resolve(stdout);
     });
   });
 }
@@ -164,4 +162,9 @@ function expectOutputEmpty(cmd, errMessage) {
       (error || stdout.length || stderr.length) ? reject(errMessage) : resolve();
     });
   });
+}
+
+var single = /'/g;
+function escapeSingle(str) {
+  return str.replace(single, '\'"\'"\'');
 }
