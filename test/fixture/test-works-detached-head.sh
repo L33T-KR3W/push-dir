@@ -6,7 +6,7 @@ HASH=`git rev-parse --short HEAD`
 
 
 # check succeeds
-node $PUSH_DIR --dir build --branch gh-pages --cleanup
+node $PUSH_DIR build:gh-pages
 if [ $? -ne 0 ]; then
   exit 1
 fi

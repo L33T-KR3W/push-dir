@@ -3,7 +3,7 @@
 [![Version][version-badge]][version-href]
 [![Build status][build-badge]][build-href]
 
-Push the contents of a directory to a remote branch
+`git push`, but for directories
 
 * No messing around with `.gitignore` (no need to commit the directory)
 * Perfect for pushing a `dist`/`build` directory to `gh-pages`
@@ -17,41 +17,37 @@ npm install push-dir
 ## example
 
 ```
-push-dir --dir=build --branch=gh-pages
+push-dir build:gh-pages
 ```
 
 ## usage
 
-```
-Usage: push-dir {OPTIONS}
+```usage
+usage: push-dir [remote] <dir>:<branch> [options...]
 
-Required Options:
+required:
 
---dir
-The name of the directory whose contents will be committed to branch
+  dir
+    the name of the directory whose contents will be pushed to <branch>
 
---branch
-The name of the remote branch to push to
+  branch
+    the name of the remote branch to push to
 
-Advanced Options:
+optional:
 
---remote
-The name of the remote to push to (defaults to origin)
+  remote
+    the name of the remote to push to
+    defaults to: origin
 
---cleanup
-whether to delete the local branch after creating
+  --preserve-local-temp-branch
+    keep the local temp branch after pushing
+    defaults to: false
 
---local-branch-name
-force the name of the local branch that is pushed to the remote branch
+  --help, -h
+    display this message
 
---allow-unclean
-whether to attempt push even if git unclean
-
---overwrite-local
-whether to override a local branch of the same name, if exists
-
---force
-alias for both --allow-unclean and --overwrite-local
+  --message, -m
+    name of commit message
 ```
 
 

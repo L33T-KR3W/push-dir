@@ -2,7 +2,6 @@
   "name": "push-dir",
   "version": "0.2.1",
   "description": "Push a directory to a remote branch",
-  "keywords": [],
   "contributors": [
     "Ryan Tsao <ryan.j.tsao@gmail.com>",
     "Scott Hardy <scott.the.hardy@gmail.com>"
