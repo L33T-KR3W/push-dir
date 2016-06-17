@@ -37,8 +37,10 @@ var options = {
 pushDir(dir, branch, options);
 
 function showUsage() {
-  var path = require('path');
   var fs = require('fs');
-  fs.createReadStream(path.join(__dirname, 'usage.txt'))
-    .pipe(process.stdout);
+  var path = require('path');
+
+  var usagePath = path.join(__dirname, 'usage.txt');
+  var usageText = fs.readFileSync(usagePath);
+  process.stdout.write(usageText);
 }
