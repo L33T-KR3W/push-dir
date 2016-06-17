@@ -42,10 +42,18 @@ function checkIfClean() {
  * @return {string} - name of current branch
  */
 function getCurrentBranch() {
-  return execCmd(
-    'git symbolic-ref HEAD -q | sed -e "s/^refs\\/heads\\///"',
-    'problem getting current branch'
-  );
+  return Promise.resolve()
+    .then(function() {
+      return execCmd(
+        'git symbolic-ref HEAD -q',
+        'problem getting current branch',
+        true
+      );
+    })
+    .then(function(ref) {
+      var regex = new RegExp('^refs\/heads\/');
+      return ref.replace(regex, '');
+    });
 }
 
 function resetBranch(branch, detach) {
@@ -129,10 +137,10 @@ function handleError(err) {
   process.exit(1);
 }
 
-function execCmd(cmd, errMessage) {
+function execCmd(cmd, errMessage, allowError) {
   return new Promise(function(resolve, reject) {
     exec(cmd, function(error, stdout, stderr) {
-      error ? reject(errMessage) : resolve(stdout);
+      (error && allowError !== true) ? reject(errMessage) : resolve(stdout);
     });
   });
 }
