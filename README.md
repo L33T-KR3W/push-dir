@@ -45,6 +45,9 @@ optional:
 
   --help, -h
     display this message
+
+  --message, -m
+    name of commit message
 ```
 
 

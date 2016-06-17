@@ -3,9 +3,10 @@ var exec = require('child_process').exec;
 module.exports = pushDir;
 
 function pushDir(dir, branch, options) {
-  return getLastCommitInfo()
+  return getLastCommitInfo(options.message)
     .then(function(info) {
       var hash = info.hash;
+      var message = info.message || hash;
       var detachedHead = info.branch === '';
       var originalBranch = detachedHead ? hash : info.branch;
 
@@ -18,7 +19,7 @@ function pushDir(dir, branch, options) {
         .then(noLocalBranchConflict.bind(null, local))
         .then(checkoutOrphanBranch.bind(null, dir, local))
         .then(addDir.bind(null, dir))
-        .then(commitDir.bind(null, dir, hash))
+        .then(commitDir.bind(null, dir, message))
         .then(pushDirToRemote.bind(null, remote, branch))
         .then(resetBranch.bind(null, originalBranch, detachedHead))
         .then(cleanup ? deleteLocalBranch.bind(null, local) : null);
@@ -71,9 +72,17 @@ function addDir(directory) {
   );
 }
 
+function formatMessage(message) {
+  return message ? execCmd(
+    'git log -1 --pretty=\'format:' + escapeSingle(message) + '\'',
+    'error formatting commit message'
+  ) : '';
+}
+
 function commitDir(directory, message) {
+  var escaped = escapeSingle(message);
   return execCmd(
-    'git --work-tree ' + directory + ' commit -m "' + message + '"',
+    'git --work-tree ' + directory + ' commit -m \'' + escaped + '\'',
     'problem committing directory to local branch'
   );
 }
@@ -106,17 +115,19 @@ function noLocalBranchConflict(branch) {
   );
 }
 
-function getLastCommitInfo() {
+function getLastCommitInfo(message) {
   return Promise
     .all([
       getLastCommitHash(),
-      getCurrentBranch()
+      getCurrentBranch(),
+      formatMessage(message)
     ])
     .then(function(info) {
       info = info.map(function(s) { return s.trim(); });
       return {
         hash: info[0],
-        branch: info[1]
+        branch: info[1],
+        message: info[2]
       };
     });
 }
@@ -151,4 +162,9 @@ function expectOutputEmpty(cmd, errMessage) {
       (error || stdout.length || stderr.length) ? reject(errMessage) : resolve();
     });
   });
+}
+
+var single = /'/g;
+function escapeSingle(str) {
+  return str.replace(single, '\'"\'"\'');
 }
