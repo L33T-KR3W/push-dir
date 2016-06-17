@@ -2,45 +2,33 @@ var exec = require('child_process').exec;
 
 module.exports = pushDir;
 
-function pushDir(args) {
-  getLastCommitInfo().then(function(info) {
-    var hash = info.hash;
-    var detachedHead = info.branch === '';
-    var originalBranch = detachedHead ? hash : info.branch;
+function pushDir(dir, branch, options) {
+  return getLastCommitInfo()
+    .then(function(info) {
+      var hash = info.hash;
+      var detachedHead = info.branch === '';
+      var originalBranch = detachedHead ? hash : info.branch;
 
-    var remoteSpecified = args._.length > 1;
-    var dirBranch = remoteSpecified ? args._[1] : args._[0];
-    var directory = dirBranch.split(':').slice(0, -1).join(':');
-    var remoteBranch = dirBranch.split(':').slice(-1)[0];
-    var local = remoteBranch + '-' + hash;
-    var remote = remoteSpecified ? args._[0] : 'origin';
-    var cleanup = !args['preserve-local-temp-branch'];
+      var local = branch + '-' + hash;
+      var remote = options.remote || 'origin';
+      var cleanup = !options.preserveLocalTempBranch;
 
-    Promise.resolve()
-      .then(validate.bind(null, directory, remoteBranch))
-      .then(checkIfClean)
-      .then(noLocalBranchConflict.bind(null, local))
-
-      .then(checkoutOrphanBranch.bind(null, directory, local))
-      .then(addDir.bind(null, directory))
-      .then(commitDir.bind(null, directory, hash))
-      .then(pushDirToRemote.bind(null, remote, remoteBranch))
-      .then(resetBranch.bind(null, originalBranch, detachedHead))
-      .then(cleanup ? deleteLocalBranch.bind(null, local) : null)
-      .catch(handleError);
-
-  }, handleError);
+      return Promise.resolve()
+        .then(checkIfClean)
+        .then(noLocalBranchConflict.bind(null, local))
+        .then(checkoutOrphanBranch.bind(null, dir, local))
+        .then(addDir.bind(null, dir))
+        .then(commitDir.bind(null, dir, hash))
+        .then(pushDirToRemote.bind(null, remote, branch))
+        .then(resetBranch.bind(null, originalBranch, detachedHead))
+        .then(cleanup ? deleteLocalBranch.bind(null, local) : null);
+    })
+    .catch(handleError);
 }
 
 /**
  * Tasks
  */
-
-function validate(directory, remoteBranch) {
-  if (!directory || !remoteBranch) {
-    return Promise.reject('must specify dir:branch');
-  }
-}
 
 function checkIfClean() {
   return expectOutputEmpty(

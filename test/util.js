@@ -35,14 +35,14 @@ function fixtureTestCommands(fixture) {
 }
 
 function shouldFailWithMessage(t, errorMessage, error, stdout, stderr) {
-  log(stdout, stderr);
+  // log(stdout, stderr);
   t.equal(error, null);
   t.equal(stderr, errorMessage);
   t.end();
 }
 
 function shouldWork(t, error, stdout, stderr) {
-  log(stdout, stderr);
+  // log(stdout, stderr);
   t.equal(error, null);
   t.end();
 }
