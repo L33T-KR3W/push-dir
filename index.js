@@ -56,14 +56,11 @@ function checkIfClean() {
 function getCurrentBranch() {
   return Promise.resolve()
     .then(function() {
-      return Promise.resolve()
-        .then(function() {
-          return execCmd(
-            'git symbolic-ref --quiet HEAD',
-            'problem getting current branch'
-          );
-        })
-        .catch(function() { return ''; });
+      return execCmd(
+        'git symbolic-ref --quiet HEAD',
+        'problem getting current branch'
+      )
+      .catch(function() { return ''; });
     })
     .then(function(ref) {
       var regex = new RegExp('^refs\/heads\/');
