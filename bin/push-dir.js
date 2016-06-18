@@ -12,35 +12,35 @@ var argv = minimist(process.argv.slice(2), {
   }
 });
 
-if (argv.help) {
-  showUsage();
-  process.exit(0);
-}
-
 var numArgs = argv._.length;
 
-if (!numArgs || numArgs > 2) {
-  showUsage();
-  process.exit(1);
+if (argv.help) {
+  showUsage().on('end', function() {
+    process.exit(0);
+  });
 }
+else if (!numArgs || numArgs > 2) {
+  showUsage().on('end', function() {
+    process.exit(1);
+  });
+}
+else {
+  var remoteSpecified = numArgs === 2;
+  var dirBranch = remoteSpecified ? argv._[1] : argv._[0];
+  var dir = dirBranch.split(':').slice(0, -1).join(':');
+  var branch = dirBranch.split(':').slice(-1)[0];
 
-var remoteSpecified = numArgs === 2;
-var dirBranch = remoteSpecified ? argv._[1] : argv._[0];
-var dir = dirBranch.split(':').slice(0, -1).join(':');
-var branch = dirBranch.split(':').slice(-1)[0];
-var options = {
-  remote: remoteSpecified ? argv._[0] : undefined,
-  preserveLocalTempBranch: argv['preserve-local-temp-branch'],
-  message: argv['message']
-};
-
-pushDir(dir, branch, options);
+  pushDir(dir, branch, {
+    remote: remoteSpecified ? argv._[0] : undefined,
+    preserveLocalTempBranch: argv['preserve-local-temp-branch'],
+    message: argv['message']
+  });
+}
 
 function showUsage() {
   var fs = require('fs');
   var path = require('path');
-
-  var usagePath = path.join(__dirname, 'usage.txt');
-  var usageText = fs.readFileSync(usagePath);
-  process.stdout.write(usageText);
+  var usage = fs.createReadStream(path.join(__dirname, 'usage.txt'));
+  usage.pipe(process.stdout);
+  return usage;
 }
