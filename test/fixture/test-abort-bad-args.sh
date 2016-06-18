@@ -6,33 +6,33 @@ git remote add origin ../fixture-remote/.git
 # no args
 node $PUSH_DIR
 if [ $? -ne 1 ]; then
-  exit 1
+  exit 11
 fi
 
 
 # just dir
 node $PUSH_DIR build
 if [ $? -ne 1 ]; then
-  exit 2
+  exit 12
 fi
 
 
 # just remote + dir
 node $PUSH_DIR origin build
 if [ $? -ne 1 ]; then
-  exit 3
+  exit 13
 fi
 
 
 # empty branch
 node $PUSH_DIR build:
 if [ $? -ne 1 ]; then
-  exit 4
+  exit 14
 fi
 
 
 # colon branch
 node $PUSH_DIR build::
 if [ $? -ne 1 ]; then
-  exit 5
+  exit 15
 fi

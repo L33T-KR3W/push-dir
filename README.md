@@ -28,26 +28,27 @@ usage: push-dir [remote] <dir>:<branch> [options...]
 required:
 
   dir
-    the name of the directory whose contents will be pushed to <branch>
+    the directory whose contents will be pushed to <branch>
 
   branch
-    the name of the remote branch to push to
+    the remote branch to push to
 
 optional:
 
   remote
-    the name of the remote to push to
-    defaults to: origin
+    the git remote to push to
+    default: origin
 
   --preserve-local-temp-branch
     keep the local temp branch after pushing
-    defaults to: false
+    default: false
+
+  --message, -m
+    the commit message
+    default: the most recent commit hash
 
   --help, -h
     display this message
-
-  --message, -m
-    name of commit message
 ```
 
 

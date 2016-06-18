@@ -6,5 +6,5 @@ git add yolo.js
 
 node $PUSH_DIR build:gh-pages
 if [ $? -ne 1 ]; then
-  exit 1
+  exit 11
 fi

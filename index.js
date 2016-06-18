@@ -2,27 +2,31 @@ var exec = require('child_process').exec;
 
 module.exports = pushDir;
 
-function pushDir(dir, branch, options) {
-  return getLastCommitInfo(options.message)
+function pushDir(dir, remoteBranch, options) {
+  return getLastCommitInfo()
     .then(function(info) {
       var hash = info.hash;
-      var message = info.message || hash;
+      var message = options.message || hash;
       var detachedHead = info.branch === '';
       var originalBranch = detachedHead ? hash : info.branch;
 
-      var local = branch + '-' + hash;
+      var localBranch = remoteBranch + '-' + hash;
+      var localRemoteBranch = 'yolando';
       var remote = options.remote || 'origin';
       var cleanup = !options.preserveLocalTempBranch;
 
       return Promise.resolve()
         .then(checkIfClean)
-        .then(noLocalBranchConflict.bind(null, local))
-        .then(checkoutOrphanBranch.bind(null, dir, local))
+        .then(noLocalBranchConflict.bind(null, localBranch))
+        .then(checkoutOrphanBranch.bind(null, dir, localBranch))
         .then(addDir.bind(null, dir))
         .then(commitDir.bind(null, dir, message))
-        .then(pushDirToRemote.bind(null, remote, branch))
+        .then(checkoutRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))
+        .then(mergeDirIntoRemote.bind(null, localBranch, message))
+        .then(pushDirToRemote.bind(null, remote, remoteBranch))
         .then(resetBranch.bind(null, originalBranch, detachedHead))
-        .then(cleanup ? deleteLocalBranch.bind(null, local) : null);
+        .then(cleanup ? deleteLocalBranch.bind(null, localBranch) : null)
+        .then(cleanup ? deleteLocalBranch.bind(null, localRemoteBranch) : null);
     })
     .catch(handleError);
 }
@@ -72,13 +76,6 @@ function addDir(directory) {
   );
 }
 
-function formatMessage(message) {
-  return message ? execCmd(
-    'git log -1 --pretty=\'format:' + escapeSingle(message) + '\'',
-    'error formatting commit message'
-  ) : '';
-}
-
 function commitDir(directory, message) {
   var escaped = escapeSingle(message);
   return execCmd(
@@ -101,10 +98,26 @@ function checkoutOrphanBranch(directory, branch) {
   );
 }
 
+function checkoutRemoteBranch(branch, remote, remoteBranch) {
+  return execCmd(
+    'git checkout -b ' + branch + ' ' + remote + '/' + remoteBranch + ' || true',
+    'problem checking out remote branch'
+  );
+}
+
+function mergeDirIntoRemote(localBranch, message) {
+  var escaped = escapeSingle(message);
+  return execCmd(
+    'git merge ' + localBranch + ' -m \'' + escaped + '\' || true',
+    'problem merging orphan into local remote'
+  );
+}
+
 function deleteLocalBranch(branch) {
   return execCmd(
     'git branch -D ' + branch,
-    'problem deleting local branch'
+    'problem deleting local branch',
+    true
   );
 }
 
@@ -115,26 +128,24 @@ function noLocalBranchConflict(branch) {
   );
 }
 
-function getLastCommitInfo(message) {
+function getLastCommitInfo() {
   return Promise
     .all([
       getLastCommitHash(),
       getCurrentBranch(),
-      formatMessage(message)
     ])
     .then(function(info) {
       info = info.map(function(s) { return s.trim(); });
       return {
         hash: info[0],
         branch: info[1],
-        message: info[2]
       };
     });
 }
 
 function getLastCommitHash() {
   return execCmd(
-    'git rev-parse --short HEAD',
+    'git rev-parse HEAD',
     'problem getting last commit hash'
   );
 }
