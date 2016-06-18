@@ -42,7 +42,7 @@ function shouldFailWithMessage(t, errorMessage, error, stdout, stderr) {
 }
 
 function shouldWork(t, error, stdout, stderr) {
-  log(stdout, stderr);
+  // log(stdout, stderr);
   t.equal(error, null);
   t.end();
 }
