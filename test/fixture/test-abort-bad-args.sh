@@ -36,3 +36,17 @@ node $PUSH_DIR build::
 if [ $? -ne 1 ]; then
   exit 15
 fi
+
+
+# wrong dir
+node $PUSH_DIR meow:gh-pages
+if [ $? -ne 1 ]; then
+  exit 16
+fi
+
+
+# wrong remote
+node $PUSH_DIR meow build:gh-pages
+if [ $? -ne 1 ]; then
+  exit 17
+fi
