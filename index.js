@@ -10,10 +10,12 @@ function pushDir(dir, remoteBranch, options) {
       var detachedHead = info.branch === '';
       var originalBranch = detachedHead ? hash : info.branch;
 
-      var localBranch = remoteBranch + '-' + hash;
-      var localRemoteBranch = 'yolando';
+      var now = Date.now();
       var remote = options.remote || 'origin';
+      var localBranch = remoteBranch + '-' + hash + '-' + now;
+      var localRemoteBranch = remote + '/' + remoteBranch + '-' + now;
       var cleanup = !options.preserveLocalTempBranch;
+      var remoteBranchExists = false;
 
       return Promise.resolve()
         .then(checkIfClean)
@@ -21,12 +23,17 @@ function pushDir(dir, remoteBranch, options) {
         .then(checkoutOrphanBranch.bind(null, dir, localBranch))
         .then(addDir.bind(null, dir))
         .then(commitDir.bind(null, dir, message))
-        .then(checkoutRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))
-        .then(mergeDirIntoRemote.bind(null, localBranch, message))
+        .then(function() {
+          return Promise.resolve()
+            .then(checkoutRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))
+            .then(function() { remoteBranchExists = true; })
+            .then(mergeDirIntoRemote.bind(null, localBranch, message))
+            .catch(function(){});
+        })
         .then(pushDirToRemote.bind(null, remote, remoteBranch))
         .then(resetBranch.bind(null, originalBranch, detachedHead))
         .then(cleanup ? deleteLocalBranch.bind(null, localBranch) : null)
-        .then(cleanup ? deleteLocalBranch.bind(null, localRemoteBranch) : null);
+        .then(remoteBranchExists ? deleteLocalRemoteBranch.bind(null, localRemoteBranch) : null);
     })
     .catch(handleError);
 }
@@ -49,11 +56,14 @@ function checkIfClean() {
 function getCurrentBranch() {
   return Promise.resolve()
     .then(function() {
-      return execCmd(
-        'git symbolic-ref HEAD -q',
-        'problem getting current branch',
-        true
-      );
+      return Promise.resolve()
+        .then(function() {
+          return execCmd(
+            'git symbolic-ref --quiet HEAD',
+            'problem getting current branch'
+          );
+        })
+        .catch(function() { return ''; });
     })
     .then(function(ref) {
       var regex = new RegExp('^refs\/heads\/');
@@ -100,7 +110,7 @@ function checkoutOrphanBranch(directory, branch) {
 
 function checkoutRemoteBranch(branch, remote, remoteBranch) {
   return execCmd(
-    'git checkout -b ' + branch + ' ' + remote + '/' + remoteBranch + ' || true',
+    'git checkout -b ' + branch + ' ' + remote + '/' + remoteBranch,
     'problem checking out remote branch'
   );
 }
@@ -108,7 +118,7 @@ function checkoutRemoteBranch(branch, remote, remoteBranch) {
 function mergeDirIntoRemote(localBranch, message) {
   var escaped = escapeSingle(message);
   return execCmd(
-    'git merge ' + localBranch + ' -m \'' + escaped + '\' || true',
+    'git merge ' + localBranch + ' -m \'' + escaped + '\'',
     'problem merging orphan into local remote'
   );
 }
@@ -116,8 +126,14 @@ function mergeDirIntoRemote(localBranch, message) {
 function deleteLocalBranch(branch) {
   return execCmd(
     'git branch -D ' + branch,
-    'problem deleting local branch',
-    true
+    'problem deleting local branch'
+  );
+}
+
+function deleteLocalRemoteBranch(branch) {
+  return execCmd(
+    'git branch -D ' + branch,
+    'problem deleting local remote branch'
   );
 }
 
@@ -159,10 +175,10 @@ function handleError(err) {
   process.exit(1);
 }
 
-function execCmd(cmd, errMessage, allowError) {
+function execCmd(cmd, errMessage) {
   return new Promise(function(resolve, reject) {
     exec(cmd, function(error, stdout, stderr) {
-      (error && allowError !== true) ? reject(errMessage) : resolve(stdout);
+      error ? reject(errMessage) : resolve(stdout);
     });
   });
 }
