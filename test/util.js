@@ -21,7 +21,7 @@ function fixtureTestCommands(fixture) {
     'PD_ROOT=' + root,
     'cd $PD_ROOT/test',
     'sleep 1',
-    'rm -rf fixture-working || (>&2 ls -la fixture-working && exit 1)',
+    'rm -rf fixture-working',
     'rm -rf fixture-remote',
     'cp -r fixture fixture-working',
     'cd $PD_ROOT/test/fixture-working',
