@@ -39,13 +39,22 @@ optional:
     the git remote to push to
     default: origin
 
-  --preserve-local-temp-branch
-    keep the local temp branch after pushing
+  --no-preserve-history
+    discard all previous commits on <branch> when pushing
+    usually used with --force option
+    default: false
+
+  --force, -f
+    force push to the remote branch
     default: false
 
   --message, -m
     the commit message
     default: the most recent commit hash
+
+  --preserve-local-temp-branch
+    keep the local temp branch after pushing
+    default: false
 
   --help, -h
     display this message

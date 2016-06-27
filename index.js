@@ -24,13 +24,19 @@ function pushDir(dir, remoteBranch, options) {
         .then(addDir.bind(null, dir))
         .then(commitDir.bind(null, dir, message))
         .then(function() {
+          if (!options.preserveHistory) return;
           return Promise.resolve()
+            .then(fetchRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))
             .then(checkoutRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))
             .then(function() { remoteBranchExists = true; })
             .then(mergeDirIntoRemote.bind(null, localBranch, message))
-            .catch(function(){});
+            .catch(function() {});
         })
-        .then(pushDirToRemote.bind(null, remote, remoteBranch))
+        .then(pushDirToRemote.bind(null, remote, remoteBranch, options.force))
+        .catch(function(error) {
+          resetBranch(originalBranch, detachedHead);
+          handleError(error);
+        })
         .then(resetBranch.bind(null, originalBranch, detachedHead))
         .then(cleanup ? deleteLocalBranch.bind(null, localBranch) : null)
         .then(remoteBranchExists ? deleteLocalRemoteBranch.bind(null, localRemoteBranch) : null);
@@ -91,9 +97,9 @@ function commitDir(directory, message) {
   );
 }
 
-function pushDirToRemote(remote, remoteBranch) {
+function pushDirToRemote(remote, remoteBranch, force) {
   return execCmd(
-    'git push ' + remote + ' HEAD:' + remoteBranch + ' --force',
+    'git push ' + remote + ' HEAD:' + remoteBranch + (force ? ' --force' : ''),
     'problem pushing local branch to remote'
   );
 }
@@ -102,6 +108,13 @@ function checkoutOrphanBranch(directory, branch) {
   return execCmd(
     'git --work-tree ' + directory + ' checkout --orphan ' + branch,
     'problem creating local orphan branch'
+  );
+}
+
+function fetchRemoteBranch(branch, remote, remoteBranch) {
+  return execCmd(
+    'git fetch --depth 1 ' + remote + ' ' + remoteBranch,
+    'problem fetching remote branch'
   );
 }
 
