@@ -8,20 +8,13 @@ git commit -m 'ezpz'
 # push-dir
 node $PUSH_DIR build:me:gh-pages
 if [ $? -ne 0 ]; then
-  exit 1
+  exit 11
 fi
 
 
 # check remote got new code
-LOCAL_HASH=`git rev-parse --short HEAD`
+LOCAL_HASH=`git rev-parse HEAD`
 REMOTE_HASH=`git log -1 --pretty=format:%s%n origin/gh-pages`
 if [[ $LOCAL_HASH != $REMOTE_HASH ]]; then
-  exit 2
-fi
-
-
-# check for temp branch
-COUNT=`git branch | grep "gh-pages" | wc -l`
-if [ $COUNT -ne 0 ]; then
-  exit 3
+  exit 12
 fi

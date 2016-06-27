@@ -20,6 +20,7 @@ function fixtureTestCommands(fixture) {
   return commands(
     'PD_ROOT=' + root,
     'cd $PD_ROOT/test',
+    'sleep 1',
     'rm -rf fixture-working',
     'rm -rf fixture-remote',
     'cp -r fixture fixture-working',
