@@ -6,19 +6,16 @@ var pushDir = require('../index.js');
 var argv = minimist(process.argv.slice(2), {
   string: ['message'],
   boolean: [
+    'discard-history',
     'force',
     'help',
-    'preserve-history',
-    'preserve-local-temp-branch',
+    'keep',
   ],
   alias: {
     'force': 'f',
     'message': 'm',
     'help': 'h',
   },
-  default: {
-    'preserve-history': true,
-  }
 });
 
 if (argv.help) {
@@ -38,10 +35,10 @@ var dirBranch = remoteSpecified ? argv._[1] : argv._[0];
 var dir = dirBranch.split(':').slice(0, -1).join(':');
 var branch = dirBranch.split(':').slice(-1)[0];
 var options = {
+  discardHistory: argv['discard-history'],
   force: argv['force'],
+  keep: argv['keep'],
   message: argv['message'],
-  preserveHistory: argv['preserve-history'],
-  preserveLocalTempBranch: argv['preserve-local-temp-branch'],
   remote: remoteSpecified ? argv._[0] : undefined,
 };
 

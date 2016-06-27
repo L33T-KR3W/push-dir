@@ -4,7 +4,7 @@ git remote add origin ../fixture-remote/.git
 
 
 # push-dir
-node $PUSH_DIR build:gh-pages --preserve-local-temp-branch
+node $PUSH_DIR build:gh-pages --keep
 if [ $? -ne 0 ]; then
   exit 11
 fi

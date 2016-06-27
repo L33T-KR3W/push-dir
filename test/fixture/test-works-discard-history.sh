@@ -23,7 +23,7 @@ echo yolooooooooo > build/yolo.min.js
 git commit -am 'changes'
 
 # push-dir 2
-node $PUSH_DIR build:gh-pages --no-preserve-history --force
+node $PUSH_DIR build:gh-pages --discard-history --force
 if [ $? -ne 0 ]; then
   exit 13
 fi

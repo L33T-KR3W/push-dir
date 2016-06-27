@@ -14,7 +14,7 @@ function pushDir(dir, remoteBranch, options) {
       var remote = options.remote || 'origin';
       var localBranch = remoteBranch + '-' + hash + '-' + now;
       var localRemoteBranch = remote + '/' + remoteBranch + '-' + now;
-      var cleanup = !options.preserveLocalTempBranch;
+      var cleanup = !options.keep;
       var remoteBranchExists = false;
 
       return Promise.resolve()
@@ -24,7 +24,7 @@ function pushDir(dir, remoteBranch, options) {
         .then(addDir.bind(null, dir))
         .then(commitDir.bind(null, dir, message))
         .then(function() {
-          if (!options.preserveHistory) return;
+          if (options.discardHistory) return;
           return Promise.resolve()
             .then(fetchRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))
             .then(checkoutRemoteBranch.bind(null, localRemoteBranch, remote, remoteBranch))

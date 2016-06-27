@@ -39,7 +39,7 @@ optional:
     the git remote to push to
     default: origin
 
-  --no-preserve-history
+  --discard-history
     discard all previous commits on <branch> when pushing
     usually used with --force option
     default: false
@@ -52,7 +52,7 @@ optional:
     the commit message
     default: the most recent commit hash
 
-  --preserve-local-temp-branch
+  --keep
     keep the local temp branch after pushing
     default: false
 
