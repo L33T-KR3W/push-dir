@@ -63,10 +63,17 @@ function checkIfClean() {
  * @return {string} - name of current branch
  */
 function getCurrentBranch() {
-  return execCmd(
-    'git symbolic-ref HEAD -q | sed -e "s/^refs\\/heads\\///"',
-    'problem getting current branch'
-  );
+  return Promise.resolve()
+    .then(execCmd.bind(null,
+      'git symbolic-ref HEAD -q',
+      'problem getting current branch'
+    ))
+    .catch(function() {
+      return '';
+    })
+    .then(function(result) {
+      return result.replace(new RegExp('^refs\/heads\/'), '');
+    });
 }
 
 function resetBranch(branch, detach) {
