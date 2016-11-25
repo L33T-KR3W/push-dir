@@ -80,10 +80,10 @@ function getCurrentBranch(verbose) {
 }
 
 function resetBranch(branch, detach, verbose) {
-  var detached = detach ? '--detach' : null;
+  var detached = detach ? '--detach' : false;
   return execCmd(
     'git',
-    ['checkout', '-f', detached, branch].filter(function(a) { return a; }),
+    ['checkout', '-f', detached, branch].filter(Boolean),
     'problem resetting branch',
     verbose
   );
