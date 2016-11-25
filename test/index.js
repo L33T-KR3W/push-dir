@@ -1,7 +1,6 @@
 var test = require('tape');
 var exec = require('child_process').exec;
 
-
 test('test abort - staged changes', function (t) {
   var cmds = fixtureTestCommands('test-abort-staged-changes.sh');
   exec(cmds, shouldFailWithMessage.bind(null, t, 'git not clean'));
@@ -56,6 +55,11 @@ test('test works - cleanup detached head', function (t) {
   t.plan(1);
 });
 
+test('test works - verbose', function (t) {
+  var cmds = fixtureTestCommands('test-works-verbose.sh');
+  exec(cmds, shouldWork.bind(null, t));
+  t.plan(1);
+});
 
 function fixtureTestCommands(fixture) {
   return commands(

@@ -39,19 +39,22 @@ Advanced Options:
 The name of the remote to push to (defaults to origin)
 
 --cleanup
-whether to delete the local branch after creating
+Whether to delete the local branch after creating
 
 --local-branch-name
-force the name of the local branch that is pushed to the remote branch
+Force the name of the local branch that is pushed to the remote branch
 
 --allow-unclean
-whether to attempt push even if git unclean
+Whether to attempt push even if git unclean
 
 --overwrite-local
-whether to override a local branch of the same name, if exists
+Whether to override a local branch of the same name, if exists
 
 --force
-alias for both --allow-unclean and --overwrite-local
+Alias for both --allow-unclean and --overwrite-local
+
+--verbose
+Display stdout and stderr from internal commands
 ```
 
 
