@@ -1,4 +1,4 @@
-var exec = require('child_process').exec;
+var childProcess = require('child_process');
 
 module.exports = pushDir;
 
@@ -17,6 +17,7 @@ function pushDir(opts) {
     var allowUnclean = opts['allow-unclean'] || opts.force;
     var overwriteLocal = opts['overwrite-local'] || opts.force;
     var cleanup = opts.cleanup === undefined ? false : opts.cleanup;
+    var verbose = opts.verbose;
 
     Promise.resolve()
       .then(checkIfClean)
@@ -28,15 +29,15 @@ function pushDir(opts) {
       .then(noLocalBranchConflict.bind(null, local))
       .catch(function onBranchConflict(reason) {
         return overwriteLocal ?
-          overwriteLocalBranch(local) : Promise.reject(reason);
+          overwriteLocalBranch(local, verbose) : Promise.reject(reason);
       })
 
-      .then(checkoutOrphanBranch.bind(null, directory, local))
-      .then(addDir.bind(null, directory))
-      .then(commitDir.bind(null, directory, message))
-      .then(pushDirToRemote.bind(null, remote, remoteBranch))
-      .then(resetBranch.bind(null, originalBranch, detachedHead))
-      .then(cleanup ? deleteLocalBranch.bind(null, local) : null)
+      .then(checkoutOrphanBranch.bind(null, directory, local, verbose))
+      .then(addDir.bind(null, directory, verbose))
+      .then(commitDir.bind(null, directory, message, verbose))
+      .then(pushDirToRemote.bind(null, remote, remoteBranch, verbose))
+      .then(resetBranch.bind(null, originalBranch, detachedHead, verbose))
+      .then(cleanup ? deleteLocalBranch.bind(null, local, verbose) : null)
       .catch(handleError);
 
   }, handleError);
@@ -46,9 +47,9 @@ function pushDir(opts) {
  * Tasks
  */
 
-function overwriteLocalBranch(local) {
+function overwriteLocalBranch(local, verbose) {
   console.log('will overwite local branch...');
-  return deleteLocalBranch(local);
+  return deleteLocalBranch(local, verbose);
 }
 
 function checkIfClean() {
@@ -62,11 +63,13 @@ function checkIfClean() {
  * Returns name of current branch or empty string if detached HEAD
  * @return {string} - name of current branch
  */
-function getCurrentBranch() {
+function getCurrentBranch(verbose) {
   return Promise.resolve()
     .then(execCmd.bind(null,
-      'git symbolic-ref HEAD -q',
-      'problem getting current branch'
+      'git',
+      ['symbolic-ref', 'HEAD', '-q'],
+      'problem getting current branch',
+      verbose
     ))
     .catch(function() {
       return '';
@@ -76,46 +79,58 @@ function getCurrentBranch() {
     });
 }
 
-function resetBranch(branch, detach) {
-  var detached = detach ? '--detach ' : '';
+function resetBranch(branch, detach, verbose) {
+  var detached = detach ? '--detach' : false;
   return execCmd(
-    'git checkout -f ' + detached + branch,
-    'problem resetting branch'
+    'git',
+    ['checkout', '-f', detached, branch].filter(Boolean),
+    'problem resetting branch',
+    verbose
   );
 }
 
-function addDir(directory) {
+function addDir(directory, verbose) {
   return execCmd(
-    'git --work-tree ' + directory + ' add --all',
-    'problem adding directory to local branch'
+    'git',
+    ['--work-tree', directory, 'add', '--all'],
+    'problem adding directory to local branch',
+    verbose
   );
 }
 
-function commitDir(directory, message) {
+function commitDir(directory, message, verbose) {
   return execCmd(
-    'git --work-tree ' + directory + ' commit -m "' + message + '"',
-    'problem committing directory to local branch'
+    'git',
+    ['--work-tree', directory, 'commit', '-m', '"' + message + '"'],
+    'problem committing directory to local branch',
+    verbose
   );
 }
 
-function pushDirToRemote(remote, remoteBranch) {
+function pushDirToRemote(remote, remoteBranch, verbose) {
   return execCmd(
-    'git push ' + remote + ' HEAD:' + remoteBranch + ' --force',
-    'problem pushing local branch to remote'
+    'git',
+    ['push', remote, 'HEAD:' + remoteBranch, '--force'],
+    'problem pushing local branch to remote',
+    verbose
   );
 }
 
-function checkoutOrphanBranch(directory, branch) {
+function checkoutOrphanBranch(directory, branch, verbose) {
   return execCmd(
-    'git --work-tree ' + directory + ' checkout --orphan ' + branch,
-    'problem creating local orphan branch'
+    'git',
+    ['--work-tree', directory, 'checkout', '--orphan', branch],
+    'problem creating local orphan branch',
+    verbose
   );
 }
 
-function deleteLocalBranch(branch) {
+function deleteLocalBranch(branch, verbose) {
   return execCmd(
-    'git branch -D ' + branch,
-    'problem deleting local branch'
+    'git',
+    ['branch', '-D', branch],
+    'problem deleting local branch',
+    verbose
   );
 }
 
@@ -141,10 +156,12 @@ function getLastCommitInfo() {
     });
 }
 
-function getLastCommitHash() {
+function getLastCommitHash(verbose) {
   return execCmd(
-    'git rev-parse --short HEAD',
-    'problem getting last commit hash'
+    'git',
+    ['rev-parse', '--short', 'HEAD'],
+    'problem getting last commit hash',
+    verbose
   );
 }
 
@@ -157,17 +174,32 @@ function handleError(err) {
   process.exit(1);
 }
 
-function execCmd(cmd, errMessage) {
+function execCmd(cmd, args, errMessage, verbose) {
   return new Promise(function(resolve, reject) {
-    exec(cmd, function(error, stdout, stderr) {
-      error ? reject(errMessage) : resolve(stdout);
+    verbose ? console.log(cmd, args.join(' ')) : null;
+    const proc = childProcess.spawn(cmd, args, { stdio: 'pipe' });
+    const stdoutChunks = [];
+
+    proc.stdout.on('data', function(data) {
+      stdoutChunks.push(data);
+      verbose ? process.stdout.write(data) : null;
+    });
+
+    proc.stderr.on('data', function(data) {
+      verbose ? process.stderr.write(data) : null;
+    });
+
+    proc.on('close', function(code) {
+      verbose ? console.log('\n') : null;
+      if (code !== 0) reject(errMessage);
+      else resolve(Buffer.concat(stdoutChunks).toString());
     });
   });
 }
 
 function expectOutputEmpty(cmd, errMessage) {
   return new Promise(function(resolve, reject) {
-    exec(cmd, function(error, stdout, stderr) {
+    childProcess.exec(cmd, function(error, stdout, stderr) {
       (error || stdout.length || stderr.length) ? reject(errMessage) : resolve();
     });
   });
