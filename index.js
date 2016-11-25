@@ -101,7 +101,7 @@ function addDir(directory, verbose) {
 function commitDir(directory, message, verbose) {
   return execCmd(
     'git',
-    ['--work-tree', directory, 'commit', '-m', '"' + message + '"'],
+    ['--work-tree', directory, 'commit', '-m', message],
     'problem committing directory to local branch',
     verbose
   );
