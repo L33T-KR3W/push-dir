@@ -37,7 +37,7 @@ function pushDir(opts) {
       .then(commitDir.bind(null, directory, message, verbose))
       .then(pushDirToRemote.bind(null, remote, remoteBranch, verbose))
       .then(resetBranch.bind(null, originalBranch, detachedHead, verbose))
-      .then(cleanup ? deleteLocalBranch.bind(null, local, verbose) : null)
+      .then(cleanup && deleteLocalBranch.bind(null, local, verbose))
       .catch(handleError);
 
   }, handleError);
@@ -176,21 +176,21 @@ function handleError(err) {
 
 function execCmd(cmd, args, errMessage, verbose) {
   return new Promise(function(resolve, reject) {
-    verbose ? console.log(cmd, args.join(' ')) : null;
+    verbose && console.log(cmd, args.join(' '));
     const proc = childProcess.spawn(cmd, args, { stdio: 'pipe' });
     const stdoutChunks = [];
 
     proc.stdout.on('data', function(data) {
       stdoutChunks.push(data);
-      verbose ? process.stdout.write(data) : null;
+      verbose && process.stdout.write(data);
     });
 
     proc.stderr.on('data', function(data) {
-      verbose ? process.stderr.write(data) : null;
+      verbose && process.stderr.write(data);
     });
 
     proc.on('close', function(code) {
-      verbose ? console.log('\n') : null;
+      verbose && console.log('\n');
       if (code !== 0) reject(errMessage);
       else resolve(Buffer.concat(stdoutChunks).toString());
     });
