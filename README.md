@@ -63,3 +63,26 @@ Display stdout and stderr from internal commands
 
 [build-badge]: https://travis-ci.org/L33T-KR3W/push-dir.svg?branch=master
 [build-href]: https://travis-ci.org/L33T-KR3W/push-dir
+
+# deploy on Travis CI
+
+First create a Github token here with `public_repo` enabled: https://github.com/settings/tokens
+
+Then encrypt your token so you can access it in your Travis CI script:
+
+```
+travis encrypt GH_TOKEN=your_github_token --add
+```
+
+Finally add this to `.travis-ci.yml`:
+
+```
+deploy:
+  script:
+    - git config --global user.email "travis@travis-ci.org"
+    - git config --global user.name "Travis CI"
+    - git remote set-url origin https://${GH_TOKEN}@github.com/username/repository.git > /dev/null 2>&1
+    - push-dir --dir=build --branch=gh-pages
+  on:
+    branch: master
+```
