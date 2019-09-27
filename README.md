@@ -55,6 +55,9 @@ Alias for both --allow-unclean and --overwrite-local
 
 --verbose
 Display stdout and stderr from internal commands
+
+--message
+A message to create the commit with
 ```
 
 
